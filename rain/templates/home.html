@@ -1,0 +1,99 @@
+{% extends 'index.html' %}
+
+
+{% block content %}
+<main role="main" id="vueContent">
+    {% verbatim %}
+    <section class="jumbotron text-center">
+        <div class="container">
+            <h1 class="jumbotron-heading">關鍵字搜尋</h1>
+            <span class="algolia-autocomplete"><input v-model="keyWord" v-on:keyup.enter="search()" type="search" class="form-control ds-input" id="search-input" placeholder="輸入關鍵字"></span>
+            <p>
+                <a v-on:click="search()" class="btn btn-primary my-2"><font color="#f0f8ff">搜尋</font></a>
+            </p>
+        </div>
+    </section>
+
+    <div class="album py-5 bg-light"
+         v-loading="loading"
+         element-loading-text="載入中.."
+         element-loading-spinner="el-icon-loading"
+         element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
+        <div class="container">
+
+            <div class="row">
+                <template v-for="item in listData.data">
+                    <div class="col-md-3">
+                        <div class="card mb-4 shadow-sm">
+                            <img class="card-img-top"
+                                 style="height: 150px; width: 100%; display: block;"
+                                 :src="item.videoImg"
+                                 data-holder-rendered="true">
+                            <div class="card-body">
+                                <p class="card-text">{{ item.videoTitle}} </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                v-on:click="linkOpen(item)">View
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">{{ (item.videoTime)?item.videoTime:'---' }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+            </div>
+        </div>
+    </div>
+    </button>
+    <el-dialog :title="openVideo.title" :visible.sync="viewVideo">
+        <iframe v-if="viewVideo" id="ytplayer" type="text/html" width="100%" height="500" :src="openVideo.src" allow="autoplay" frameborder="0">
+        </iframe>
+    </el-dialog>
+    {% endverbatim %}
+</main>
+{% endblock %}
+
+{% block js %}
+<script>
+    var app = new Vue({
+        el: '#vueContent',
+        data: {
+            viewVideo: false,
+            loading: true,
+            listData: [],
+            openVideo:{},
+            keyWord:'',
+        },
+        mounted() {
+            this.loading = true;
+            axios.get('search').then(response => {
+                this.listData = response.data
+                this.loading = false;
+            })
+
+        },
+        methods: {
+            search(){
+                  this.loading = true;
+                  axios.post('search', {
+                      keyWord:this.keyWord,
+                  }).then(response => {
+                     this.listData = response.data
+                     this.loading = false;
+                  })
+
+            },
+            linkOpen(videoData) {
+                this.viewVideo = true
+                this.openVideo.title = videoData.videoTitle
+                this.openVideo.src = 'https://www.youtube.com/embed/'+ videoData.videoUrl +'?autoplay=1'
+            },
+
+        }
+    })
+</script>
+{% endblock %}

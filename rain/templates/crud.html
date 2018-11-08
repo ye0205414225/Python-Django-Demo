@@ -1,0 +1,230 @@
+{% extends 'index.html' %}
+
+
+{% block content %}
+<main role="main" id="vueContent">
+    {% verbatim %}
+    <div class="album py-5 bg-light"
+         v-loading="loading"
+         element-loading-text="載入中.."
+         element-loading-spinner="el-icon-loading"
+         element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
+        <div class="container">
+            <div class="row">
+                 <div class="tex-center py-3">
+                    <button v-on:click="setList()" type="button" class="btn btn-secondary">儲存</button>
+                    <button v-on:click="upList()" type="button" class="btn btn-info">編輯</button>
+                    <button v-on:click="delList()" type="button" class="btn btn-danger">刪除</button>
+                    <button v-on:click="add500()" type="button" class="btn btn-secondary">新增500筆</button>
+                </div>
+                <table class="table table-sm">
+                    <thead>
+                    <tr>
+                        <th scope="col">序列</th>
+                        <th scope="col">內容</th>
+                        <th scope="col">操作
+                          <input v-model="allchackbox" v-on:change="allCheckBox()" type="checkbox" :checked="allchackbox">
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="(item,key,arr) in listData">
+                        <th scope="row">{{ key+1 }}</th>
+                        <td>
+                            <template v-if="item.edit">
+                                <input v-model="item.title" type="text" class="form-control">
+                            </template>
+                            <template v-else>
+                                {{ item.title }}
+                            </template>
+                        </td>
+                        <td>
+                            <button v-on:click="addList(key)" type="button" class="btn btn-primary">增加</button>
+                            <input v-on:click="[item.checkbox?item.checkbox=false:item.checkbox=true]" type="checkbox"
+                                   :checked="item.checkbox">
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+
+    </button>
+    {% endverbatim %}
+</main>
+{% endblock %}
+
+{% block js %}
+<script>
+    var app = new Vue({
+        el: '#vueContent',
+        data: {
+            loading: true,
+            listData: [],
+            allchackbox:false,
+        },
+        mounted() {
+            this.loading = false;
+            axios.get('apiListCrud').then(response => {
+
+                if (!response.data.listData[0]) {
+                    this.listData = [{
+                        id: false,
+                        title: '',
+                        checkbox: false,
+                        edit: true,
+                    }]
+                } else {
+                    this.listData = response.data.listData
+                }
+
+                this.loading = false;
+            })
+
+        },
+        methods: {
+
+            allCheckBox(){
+                if(this.allchackbox == true){
+                    for(item  in this.listData){
+                        this.listData[item].checkbox = true
+                    }
+                }else{
+                    for(item  in this.listData){
+                        this.listData[item].checkbox = false
+                    }
+                }
+            },
+
+            add500(){
+
+               var i = 0
+                for (item in this.listData){
+                    i++
+                }
+
+                var totel = i + 500 -1
+
+                for (var v = i ; v <= totel ; v++){
+                    this.listData.splice(v, 0, {
+                        id: false,
+                        title: '第'+ (v+1) +'筆',
+                        checkbox: false,
+                        edit: true,
+                    })
+                }
+
+
+
+
+            },
+
+            // search(){
+            //       this.loading = true;
+            //       axios.post('search', {
+            //           keyWord:this.keyWord,
+            //       }).then(response => {
+            //          this.listData = response.data
+            //          this.loading = false;
+            //       })
+            //
+            // },
+            addList(key) {
+                this.listData.splice(key + 1, 0, {
+                    id: false,
+                    title: '',
+                    checkbox: false,
+                    edit: true,
+                })
+            },
+            /***
+             * 刪除
+             ***/
+            delList() {
+
+                this.loading = true;
+                var delData = {}
+                for (let i = this.listData.length - 1; i >= 0; i--) {
+                    if (this.listData[i].checkbox) {
+                        // this.listData.splice(i, 1);
+                        delData[i] = this.listData[i]
+                    }
+                }
+                axios.post('apiListdel', {
+                    delData: delData,
+                }).then(response => {
+                    this.$message({
+                        message: '刪除成功!',
+                        type: 'success'
+                    });
+                    this.loading = false;
+                    app.allList()
+                })
+            },
+            /***
+             * 編輯
+             ***/
+            upList() {
+                for (let i = this.listData.length - 1; i >= 0; i--) {
+                    if (this.listData[i].checkbox) {
+                        this.listData[i].edit = true
+                    }
+                }
+            },
+            /***
+             * 新增
+             ***/
+            setList() {
+                this.loading = true;
+                var setData = {}
+                for (item in this.listData) {
+                    if (this.listData[item].edit) {
+                        if (this.listData[item].title == '') {
+                            this.$message.error('欄位不可為空')
+                            this.loading = false;
+                            return false
+                        } else {
+                            setData[item] = this.listData[item]
+                        }
+                    }
+                }
+
+                axios.post('apiListset', {
+                    setData: setData,
+                }).then(response => {
+                    if (response.data == 'success') {
+                        this.$message.success('儲存成功!')
+                        app.allList()
+                    } else {
+                        this.loading = false;
+                        this.$message.error('error')
+                    }
+                })
+            },
+            /**
+             * 列表
+             */
+            allList() {
+                axios.get('apiListCrud').then(response => {
+
+                   if (!response.data.listData[0]) {
+                       this.listData = [{
+                           id: false,
+                           title: '',
+                           checkbox: false,
+                           edit: true,
+                       }]
+                   } else {
+                       this.listData = response.data.listData
+                   }
+                   this.loading = false;
+                   this.allchackbox = false
+                })
+            }
+        }
+    })
+</script>
+{% endblock %}

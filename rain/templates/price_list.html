@@ -1,0 +1,168 @@
+{% extends 'index.html' %}
+
+
+{% block content %}
+    <main role="main" id="vueContent">
+        {% verbatim %}
+        <div class="album py-5 bg-light"
+             v-loading="loading"
+             element-loading-text="載入中.."
+             element-loading-spinner="el-icon-loading"
+             element-loading-background="rgba(0, 0, 0, 0.8)"
+        >
+            <div class="container">
+                <div class="row">
+                    <div class="tex-center py-3">
+
+                    </div>
+                    <table class="table table-sm">
+                        <thead>
+                        <tr>
+                            <td>功能名</td>
+                            <td>起日</td>
+                            <td>迄日</td>
+                            <td>操作</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>每日股價更新抓取</td>
+                            <td>
+                                <el-date-picker
+                                        value-format="yyyy-MM-dd"
+                                        v-model="dayStart"
+                                        type="date"
+                                        placeholder="選擇起">
+                                </el-date-picker>
+                            </td>
+                            <td>
+                                <el-date-picker
+                                        value-format="d"
+                                        v-model="dayEnd"
+                                        type="date"
+                                        placeholder="選擇迄">
+                                </el-date-picker>
+                            </td>
+                            <td>
+                                <button v-on:click="slelectDay()" type="button" class="btn btn-secondary">送出</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>每月更新月報抓取</td>
+                            <td>
+                                <div class="block">
+                                    <el-date-picker
+                                            value-format="yyyy-M"
+                                            v-model="monthStart"
+                                            type="month"
+                                            placeholder="選擇起">
+                                    </el-date-picker>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="block">
+                                    <el-date-picker
+                                            value-format="M"
+                                            v-model="monthEnd"
+                                            type="month"
+                                            placeholder="選擇迄">
+                                    </el-date-picker>
+                                </div>
+                            </td>
+                            <td>
+                                <button v-on:click="slelectMonth()" type="button" class="btn btn-secondary">送出</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>每季更新財報抓取</td>
+                            <td>
+                                <el-date-picker
+                                        value-format="yyyy"
+                                        v-model="year"
+                                        type="year"
+                                        placeholder="選擇年">
+                                </el-date-picker>
+                            </td>
+                            <td>
+                                <el-select v-model="season" placeholder="選擇季">
+                                    <el-option label="第一季" value="1"></el-option>
+                                    <el-option label="第二季" value="2"></el-option>
+                                    <el-option label="第三季" value="3"></el-option>
+                                    <el-option label="第四季" value="4"></el-option>
+                                </el-select>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-secondary">送出</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>策略選擇</td>
+                            <td>
+                                <el-select v-model="strategy" placeholder="策略選擇">
+                                    <el-option label="第一策略" value="1"></el-option>
+                                </el-select>
+                            </td>
+                            <td></td>
+                            <td>
+                                <button type="button" class="btn btn-secondary">送出</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        </button>
+        {% endverbatim %}
+    </main>
+{% endblock %}
+
+{% block js %}
+    <script>
+        var app = new Vue({
+            el: '#vueContent',
+            data: {
+                monthStart: '',
+                monthEnd: '',
+                dayStart: '',
+                dayEnd: '',
+                year: '',
+                season: '',
+                strategy: '',
+                loading: true,
+
+            },
+            mounted() {
+                this.loading = false
+            },
+            methods: {
+                slelectMonth() {
+                    this.loading = true
+                    axios.post('crawl_monthly_report', {
+                        monthStart: this.monthStart,
+                        monthEnd: this.monthEnd,
+                    }).then(response => {
+                        if (response.data = 'success') {
+                            this.loading = false
+                        }
+                    })
+                },
+                slelectDay() {
+                    //this.loading = true
+                    axios.post('crawl_price', {
+                        dayStart: this.dayStart,
+                        dayEnd: this.dayEnd,
+                    }).then(response => {
+                        // if (response.data = 'success') {
+                        //     this.loading = false
+                        // }
+                    })
+                }
+
+
+            }
+        })
+    </script>
+{% endblock %}
