@@ -21,7 +21,7 @@ from django_pandas.io import pd
 import numpy as np
 import datetime
 
-from talib import abstract
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -109,15 +109,7 @@ def crawl_price(request):
 
 
 
-
 def pandasList(request):
-
-
-
-
-
-    return dD.show()
-
 
 
     #
@@ -174,9 +166,6 @@ def pandasList(request):
     # 將 s 用StringIO變成檔案，並用 pd.read_csv 來讀取檔案
     df = pd.read_csv(StringIO(s))
 
-
-
-
     df = df.applymap(lambda s: s.replace(',', ''))
 
     # 將 df 證券代號變成 index
@@ -196,8 +185,6 @@ def pandasList(request):
     close_open = df['收盤價'] / df['開盤價']
     close_open.head(5)
     df[close_open > 1.05]
-
-
 
 
 
@@ -482,6 +469,7 @@ def apiListset(request):
  CRUD-數據操作 刪除list 
 """
 @csrf_exempt #  宣告 csrf
+
 def apiListdel(request):
 
     if request.method == 'POST':
